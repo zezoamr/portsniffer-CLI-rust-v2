@@ -45,6 +45,19 @@ fn end_port_guard(input: &u16) -> bool {
     *input <= MAX
 }
 
+async fn scan(tx: Sender<u16>, port: u16, ip_addr: IpAddr) {
+    match TcpStream::connect(format!("{}:{}", ip_addr, port)).await {
+        Ok(_) => {
+            print!(".");
+            io::stdout().flush().unwrap();
+            tx.send(port).unwrap();
+        }
+        Err(_) => {
+            //println!("{}: closed port", port);
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() {
     //println!("{:?}", args);
