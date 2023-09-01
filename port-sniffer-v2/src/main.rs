@@ -62,6 +62,25 @@ async fn scan(tx: Sender<u16>, port: u16, ip_addr: IpAddr) {
 async fn main() {
     //println!("{:?}", args);
     let opts = arguments().run();
-    println!("{:?}", opts);
+
+    let (tx, rx) = channel();
+    for i in opts.start_port..opts.end_port {
+        let tx = tx.clone();
+
+        task::spawn(async move { scan(tx, i, opts.address).await });
+    }
+    // Create the vector for all of the outputs.
+    let mut out = vec![];
+    drop(tx);
+
+    for p in rx {
+        out.push(p);
+    }
+
+    println!("");
+    out.sort();
+    for v in out {
+        println!("{} is open", v);
+    }
 }
-// ex to run: cargo run -- -s  1000 -e 1100 -a 192.168.1.1
+// ex to run: cargo run -- -s 1000 -e 20000 -a 192.168.1.1
